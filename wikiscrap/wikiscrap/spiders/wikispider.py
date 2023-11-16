@@ -3,6 +3,7 @@ import scrapy
 from scrapy.http import Request
 import pandas as pd
 from wikiscrap.items import RegistryItem
+import re
 # este es el archivo mas deficil de crear, es importante las importaciones iniciales ya que este archivo es un iterador a los demas
 
 class WikispiderSpider(scrapy.Spider): # creacion del spider
@@ -20,15 +21,19 @@ class WikispiderSpider(scrapy.Spider): # creacion del spider
     def parse(self, response):
         url = response.url #creas la response para cada caso
         entity_class = response.meta['class'] #tomas el valor del entity_class para crear el item
-        
-        for paragraph in response.css('p::text').getall(): #lo que haces aca es extraer el texto entre etiquetas <p></p> (parrafo) de todo el sitio e iterar sobre cada parrafo
-            
-            sentencias = paragraph.split('\n') #separo el parrafo en sentencias
+
+        paragraphs = response.css('p:not(:has(sup))').extract()
+
+        for paragraph in paragraphs:
+            paragraph_limpio = re.sub(r'<.*?>', '', paragraph)
+
+            sentencias = paragraph_limpio.split('\n') #separo el parrafo en sentencias
 
             for sentencia in sentencias:
                 if sentencia == '': #para evitar tener lineas vacias salteo el proceso cuando estan vacias
                     continue
-
+                
+                sentencia = sentencia.strip()
                 item = RegistryItem() #creo un item para exportar
 
                 item['paragraph'] = sentencia #aca igualas el atributo paragraph del objeto item a la sentencia
