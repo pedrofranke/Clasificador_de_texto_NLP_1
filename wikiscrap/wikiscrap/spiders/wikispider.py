@@ -22,18 +22,19 @@ class WikispiderSpider(scrapy.Spider): # creacion del spider
         url = response.url #creas la response para cada caso
         entity_class = response.meta['class'] #tomas el valor del entity_class para crear el item
 
-        paragraphs = response.css('p:not(:has(sup))').extract()
+        paragraphs = response.css('p:not(:has(sup))').extract() #para evitar tener una lista de muchas sentencias no relacionadas a la puntuacion
+        #vamos a usar el metodo extract (y no el .get())... ya que asi te extrae el texto entre cada <p> con etiquetas y todo
 
-        for paragraph in paragraphs:
-            paragraph_limpio = re.sub(r'<.*?>', '', paragraph)
+        for paragraph in paragraphs: #iteramos sobre cada <p>
+            paragraph_limpio = re.sub(r'<.*?>', '', paragraph) #usamos re para eliminar el contenido dentro de cada etiqueta (todo lo que estre entre <>)
 
             sentencias = paragraph_limpio.split('\n') #separo el parrafo en sentencias
 
-            for sentencia in sentencias:
+            for sentencia in sentencias: #itero sobre las sentencias
                 if sentencia == '': #para evitar tener lineas vacias salteo el proceso cuando estan vacias
                     continue
-                
-                sentencia = sentencia.strip()
+
+                sentencia = sentencia.strip() #para eliminar espacios vacios al inicio o final de cada sentencia
                 item = RegistryItem() #creo un item para exportar
 
                 item['paragraph'] = sentencia #aca igualas el atributo paragraph del objeto item a la sentencia
